@@ -12,46 +12,7 @@ from werkzeug.utils import secure_filename
 from app import app, db
 from models import User, Student, Teacher, Class, Attendance, Role
 from forms import LoginForm, StudentRegistrationForm, TeacherRegistrationForm, ClassForm, ManualAttendanceForm
-
-# Create a simpler facial recognition system
-class SimpleFaceRecognitionSystem:
-    def __init__(self, app=None):
-        self.app = app
-        self.known_student_ids = []
-        self.app = app
-        
-    def load_student_data(self, students):
-        logging.info("Loading student data for recognition")
-        self.known_student_ids = [student.id for student in students]
-        return len(students)
-    
-    def process_and_save_student_photo(self, file_path):
-        logging.info(f"Processing student photo: {file_path}")
-        try:
-            from PIL import Image
-            import numpy as np
-            
-            # Just verify it's a valid image file
-            img = Image.open(file_path)
-            img.verify()  # Verify it's a valid image
-            return [0.5] * 128  # Return a mock face encoding
-        except Exception as e:
-            logging.error(f"Error processing image: {e}")
-            return None
-        
-    def recognize_from_frame(self, frame_data):
-        logging.info("Recognizing students from frame")
-        try:
-            # For demonstration, return the first student ID if any are loaded
-            if self.known_student_ids:
-                # Return up to 3 random student IDs (if available) to simulate recognition
-                import random
-                num_students = min(3, len(self.known_student_ids))
-                return random.sample(self.known_student_ids, num_students)
-            return []
-        except Exception as e:
-            logging.error(f"Error in recognition: {e}")
-            return []
+from recognition import SimpleFaceRecognitionSystem
 
 # Initialize simple facial recognition system
 face_recognition_system = SimpleFaceRecognitionSystem(app)
