@@ -650,16 +650,16 @@ def student_chatbot():
 @login_required
 @student_required
 def student_chat_response():
-    from openrouter_api import StudyBotAPI
+    from openrouter_api import ChatBotAPI
     
     # Get the message from the request
     message = request.form.get('message', '')
     
-    # Create an instance of the StudyBotAPI
-    study_bot = StudyBotAPI()
+    # Create an instance of the ChatBotAPI
+    chat_bot = ChatBotAPI()
     
     # Get a response from the API
-    response = study_bot.get_study_response(message)
+    response = chat_bot.get_response(message)
     
     # If it's an AJAX request, return JSON response
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
