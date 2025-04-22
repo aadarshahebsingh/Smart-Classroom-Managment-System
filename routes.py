@@ -130,7 +130,7 @@ def admin_dashboard():
     attendance_data = db.session.query(
         Attendance.date, 
         db.func.count(Attendance.id),
-        db.func.sum(db.case([(Attendance.status == 'present', 1)], else_=0))
+        db.func.sum(db.case((Attendance.status == 'present', 1), else_=0))
     ).filter(Attendance.date >= week_ago).group_by(Attendance.date).all()
     
     dates = []
@@ -288,7 +288,7 @@ def admin_reports():
         Class.grade,
         db.func.count(Student.id).label('student_count'),
         db.func.count(Attendance.id).label('attendance_count'),
-        db.func.sum(db.case([(Attendance.status == 'present', 1)], else_=0)).label('present_count')
+        db.func.sum(db.case((Attendance.status == 'present', 1), else_=0)).label('present_count')
     ).select_from(Class).outerjoin(Student).outerjoin(
         Attendance, (Student.id == Attendance.student_id) & 
         (Attendance.date == date.today())
@@ -567,9 +567,9 @@ def student_dashboard():
     
     attendance_count = db.session.query(
         db.func.count(Attendance.id).label('total'),
-        db.func.sum(db.case([(Attendance.status == 'present', 1)], else_=0)).label('present'),
-        db.func.sum(db.case([(Attendance.status == 'absent', 1)], else_=0)).label('absent'),
-        db.func.sum(db.case([(Attendance.status == 'late', 1)], else_=0)).label('late')
+        db.func.sum(db.case((Attendance.status == 'present', 1), else_=0)).label('present'),
+        db.func.sum(db.case((Attendance.status == 'absent', 1), else_=0)).label('absent'),
+        db.func.sum(db.case((Attendance.status == 'late', 1), else_=0)).label('late')
     ).filter(Attendance.student_id == student.id).first()
     
     stats = {
