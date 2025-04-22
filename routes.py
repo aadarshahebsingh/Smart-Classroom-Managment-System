@@ -603,3 +603,31 @@ def student_dashboard():
 @login_required
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# Student deletion route
+@app.route('/admin/students/delete/<int:student_id>')
+@login_required
+@admin_required
+def delete_student(student_id):
+    # Find the student
+    student = Student.query.get_or_404(student_id)
+    
+    # Get associated user
+    user_id = student.user_id
+    user = User.query.get(user_id)
+    
+    # Delete attendance records first to avoid foreign key constraint
+    Attendance.query.filter_by(student_id=student.id).delete()
+    
+    # Delete student record
+    db.session.delete(student)
+    
+    # Delete user if it exists
+    if user:
+        db.session.delete(user)
+    
+    # Commit changes
+    db.session.commit()
+    
+    flash(f'Student and associated records have been deleted.', 'success')
+    return redirect(url_for('manage_students'))

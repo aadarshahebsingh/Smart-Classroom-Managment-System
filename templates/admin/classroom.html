@@ -128,7 +128,7 @@
                                     {% set grade_classes = [] %}
                                     {% for class_item in classes %}
                                         {% if class_item.grade == grade %}
-                                            {% do grade_classes.append(class_item) %}
+                                            {% set grade_classes = grade_classes + [class_item] %}
                                         {% endif %}
                                     {% endfor %}
                                     
