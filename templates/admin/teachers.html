@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Teachers - SCMS{% endblock %}
+{% block page_title %}Teacher Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Teacher Registration Form -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Add New Teacher</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            {{ form.name(class="form-control", id="name", placeholder="Enter teacher name") }}
+                            {% if form.name.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.name.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            {{ form.email(class="form-control", id="email", placeholder="teacher@example.com") }}
+                            {% if form.email.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.email.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            {{ form.subject(class="form-control", id="subject", placeholder="Mathematics, English, etc.") }}
+                            {% if form.subject.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.subject.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="classes" class="form-label">Assigned Class</label>
+                            {{ form.classes(class="form-select", id="classes") }}
+                            {% if form.classes.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.classes.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">You can assign more classes after creation</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            {{ form.password(class="form-control", id="password", placeholder="Enter password") }}
+                            {% if form.password.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.password.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="confirm_password" class="form-label">Confirm Password</label>
+                            {{ form.confirm_password(class="form-control", id="confirm_password", placeholder="Confirm password") }}
+                            {% if form.confirm_password.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.confirm_password.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-2"></i> Register Teacher
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Teachers List -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Teachers List</h5>
+                    <div class="input-group" style="max-width: 300px;">
+                        <input type="text" id="teacherSearch" class="form-control" placeholder="Search teachers...">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Subject</th>
+                                    <th>Assigned Classes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for teacher in teachers %}
+                                <tr>
+                                    <td>{{ teacher.id }}</td>
+                                    <td>{{ teacher.user.name }}</td>
+                                    <td>{{ teacher.user.email }}</td>
+                                    <td>{{ teacher.subject }}</td>
+                                    <td>
+                                        {% for class_item in teacher.classes %}
+                                            <span class="badge bg-info">
+                                                {{ class_item.name }} (Grade {{ class_item.grade }})
+                                            </span> 
+                                        {% else %}
+                                            <span class="badge bg-secondary">No classes assigned</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No teachers registered yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <nav aria-label="Teacher list pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('teacherSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchValue = this.value.toLowerCase();
+                const tableRows = document.querySelectorAll('tbody tr');
+                
+                tableRows.forEach(row => {
+                    const name = row.cells[1].textContent.toLowerCase();
+                    const email = row.cells[2].textContent.toLowerCase();
+                    const subject = row.cells[3].textContent.toLowerCase();
+                    const classes = row.cells[4].textContent.toLowerCase();
+                    
+                    if (name.includes(searchValue) || email.includes(searchValue) || 
+                        subject.includes(searchValue) || classes.includes(searchValue)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

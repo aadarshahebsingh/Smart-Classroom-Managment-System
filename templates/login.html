@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Smart Classroom Management System{% endblock %}
+
+{% block login_content %}
+<div class="login-page">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>SCMS</h1>
+            <p>Smart Classroom Management Software</p>
+        </div>
+        
+        <div class="login-body">
+            <h2 class="mb-3">Welcome back</h2>
+            <p class="text-muted mb-4">Login to your account</p>
+            
+            <div class="login-tabs mb-4">
+                <a href="{{ url_for('login', role='student') }}" class="login-tab {% if form.role.data == 'student' %}active{% endif %}">Student</a>
+                <a href="{{ url_for('login', role='teacher') }}" class="login-tab {% if form.role.data == 'teacher' %}active{% endif %}">Teacher</a>
+                <a href="{{ url_for('login', role='admin') }}" class="login-tab {% if form.role.data == 'admin' %}active{% endif %}">Admin</a>
+            </div>
+            
+            <form method="POST" action="" class="login-form">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    {{ form.email(class="form-control", placeholder="name@example.com") }}
+                    {% if form.email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.email.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label>Password</label>
+                        <a href="#" class="text-primary small">Forgot password?</a>
+                    </div>
+                    {{ form.password(class="form-control", placeholder="Enter your password") }}
+                    {% if form.password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        Login as {{ form.role.data.capitalize() }}
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="login-footer mt-4">
+            <p>Don't have an account? Contact your school administrator.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

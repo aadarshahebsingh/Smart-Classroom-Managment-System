@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - SCMS{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-graduate text-primary mb-3" style="font-size: 3rem;"></i>
+                    <h2 class="fw-bold">{{ student_count }}</h2>
+                    <p class="text-muted">Total Students</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chalkboard-teacher text-success mb-3" style="font-size: 3rem;"></i>
+                    <h2 class="fw-bold">{{ teacher_count }}</h2>
+                    <p class="text-muted">Total Teachers</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-school text-info mb-3" style="font-size: 3rem;"></i>
+                    <h2 class="fw-bold">{{ class_count }}</h2>
+                    <p class="text-muted">Total Classes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Dashboard Content -->
+    <div class="row">
+        <!-- Attendance Overview Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div id="attendance-chart" data-chart="attendance-overview" 
+                         data-dates='{{ dates|tojson }}' 
+                         data-counts='{{ counts|tojson }}' 
+                         data-present-counts='{{ present_counts|tojson }}'
+                         style="height: 300px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('manage_students') }}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-2"></i> Add New Student
+                        </a>
+                        <a href="{{ url_for('manage_teachers') }}" class="btn btn-success">
+                            <i class="fas fa-user-tie me-2"></i> Add New Teacher
+                        </a>
+                        <a href="{{ url_for('manage_classes') }}" class="btn btn-info">
+                            <i class="fas fa-plus-circle me-2"></i> Create New Class
+                        </a>
+                        <a href="{{ url_for('teacher_attendance') }}" class="btn btn-warning">
+                            <i class="fas fa-camera me-2"></i> Start Attendance
+                        </a>
+                        <a href="{{ url_for('admin_reports') }}" class="btn btn-secondary">
+                            <i class="fas fa-chart-bar me-2"></i> View Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Overview -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">System Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Latest Features</h6>
+                            <ul class="list-group mb-4">
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Facial Recognition Attendance
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Multi-User Role Management
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Attendance Reports & Analytics
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Student Photo Management
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">System Information</h6>
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Version</th>
+                                        <td>1.0.0</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Last Updated</th>
+                                        <td>{{ now.strftime('%Y-%m-%d') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Database</th>
+                                        <td>SQLite/PostgreSQL</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">License</th>
+                                        <td>Educational Use</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Current date for system info
+        const now = new Date();
+        const dateElement = document.querySelector('td:contains("Last Updated")');
+        if (dateElement) {
+            dateElement.textContent = now.toISOString().split('T')[0];
+        }
+    });
+</script>
+{% endblock %}

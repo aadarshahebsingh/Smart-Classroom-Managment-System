@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Management - SCMS{% endblock %}
+{% block page_title %}Take Attendance{% endblock %}
+
+{% block extra_head %}
+<style>
+    #webcam {
+        width: 100%;
+        max-width: 640px;
+        height: auto;
+        border-radius: 0.75rem;
+        border: 1px solid #ddd;
+    }
+    
+    #capture-canvas {
+        display: none;
+    }
+    
+    .student-card {
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .student-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .recognized-student {
+        background-color: #d4edda !important;
+        border-color: #c3e6cb !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Class Selection -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Select Class</h5>
+                        <div>
+                            <form method="GET" action="{{ url_for('teacher_attendance') }}" class="d-flex align-items-center">
+                                <select name="class_id" class="form-select me-2" style="width: auto;">
+                                    {% for class_item in classes %}
+                                        <option value="{{ class_item.id }}" {% if class_item.id == selected_class_id %}selected{% endif %}>
+                                            {{ class_item.name }} (Grade {{ class_item.grade }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-sync-alt me-2"></i> Load Class
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Webcam Section -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Facial Recognition Attendance</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="webcam-container mb-3">
+                        <video id="webcam" autoplay playsinline></video>
+                        <canvas id="capture-canvas"></canvas>
+                    </div>
+                    
+                    <div class="webcam-controls">
+                        <button id="start-webcam" class="btn btn-primary me-2">
+                            <i class="fas fa-video me-2"></i> Start Webcam
+                        </button>
+                        <button id="stop-webcam" class="btn btn-danger me-2" disabled>
+                            <i class="fas fa-video-slash me-2"></i> Stop Webcam
+                        </button>
+                        <button id="start-capture" class="btn btn-success me-2">
+                            <i class="fas fa-play me-2"></i> Start Recognition
+                        </button>
+                        <button id="stop-capture" class="btn btn-warning me-2" disabled>
+                            <i class="fas fa-stop me-2"></i> Stop Recognition
+                        </button>
+                        <button id="single-capture" class="btn btn-info">
+                            <i class="fas fa-camera me-2"></i> Capture Now
+                        </button>
+                    </div>
+                    
+                    <div id="webcam-status" class="alert alert-info mt-3">
+                        Ready to start. Click "Start Webcam" to begin.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recognized Students -->
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recognized Students</h5>
+                    <span class="badge bg-primary" id="recognized-count">0</span>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group" id="recognized-students">
+                        <!-- Recognized students will be added here dynamically -->
+                        <li class="list-group-item text-center text-muted">
+                            No students recognized yet
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manual Attendance & Student List -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Manual Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('teacher_attendance') }}" id="manual-attendance-form">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="student_id" class="form-label">Student</label>
+                                {{ form.student_id(class="form-select", id="student_id") }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                {{ form.status(class="form-select", id="status") }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-clipboard-check me-2"></i> Mark Attendance
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Student List with Attendance Status -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Student Attendance List</h5>
+                    <div class="input-group" style="width: 200px;">
+                        <input type="text" id="studentSearch" class="form-control" placeholder="Search...">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Student Name</th>
+                                    <th>Today's Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                {% set attendance = today_attendance.get(student.id) %}
+                                <tr id="student-row-{{ student.id }}" class="{% if attendance %}
+                                    {% if attendance.status == 'present' %}table-success
+                                    {% elif attendance.status == 'absent' %}table-danger
+                                    {% elif attendance.status == 'late' %}table-warning{% endif %}
+                                    {% endif %}">
+                                    <td>{{ student.id }}</td>
+                                    <td>{{ student.user.name }}</td>
+                                    <td>
+                                        <span id="attendance-status-{{ student.id }}" class="badge 
+                                            {% if attendance %}
+                                                {% if attendance.status == 'present' %}badge-success
+                                                {% elif attendance.status == 'absent' %}badge-danger
+                                                {% elif attendance.status == 'late' %}badge-warning{% endif %}
+                                            {% else %}
+                                                badge-secondary
+                                            {% endif %}">
+                                            {% if attendance %}
+                                                {{ attendance.status|capitalize }}
+                                            {% else %}
+                                                Not marked
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                onclick="AttendanceManager.toggleStatus({{ student.id }}, '{{ attendance.status if attendance else 'not_marked' }}')">
+                                            <i class="fas fa-edit"></i> Change
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No students in this class.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted">Total Students: {{ students|length }}</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-success me-2 btn-print">
+                            <i class="fas fa-print me-1"></i> Print
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" id="export-attendance">
+                            <i class="fas fa-file-export me-1"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/webcam.js') }}"></script>
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Student search functionality
+        const searchInput = document.getElementById('studentSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchValue = this.value.toLowerCase();
+                const tableRows = document.querySelectorAll('tbody tr');
+                
+                tableRows.forEach(row => {
+                    const studentName = row.cells[1].textContent.toLowerCase();
+                    
+                    if (studentName.includes(searchValue)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        // Export attendance button
+        const exportBtn = document.getElementById('export-attendance');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const className = document.querySelector('select[name="class_id"] option:checked').textContent;
+                const fileName = `attendance_${className.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`;
+                
+                AttendanceManager.exportToCSV('student-list', fileName);
+            });
+        }
+        
+        // Update recognized count when students are recognized
+        const originalUpdateRecognizedList = WebcamHandler.updateRecognizedList;
+        WebcamHandler.updateRecognizedList = function(students) {
+            originalUpdateRecognizedList.call(this, students);
+            
+            // Update count and remove placeholder if needed
+            const countElement = document.getElementById('recognized-count');
+            const listElement = document.getElementById('recognized-students');
+            
+            if (countElement && listElement) {
+                const studentItems = listElement.querySelectorAll('[data-student-id]');
+                countElement.textContent = studentItems.length;
+                
+                // Remove placeholder if we have students
+                if (studentItems.length > 0) {
+                    const placeholder = listElement.querySelector('.text-muted');
+                    if (placeholder) {
+                        placeholder.remove();
+                    }
+                }
+            }
+        };
+    });
+</script>
+{% endblock %}

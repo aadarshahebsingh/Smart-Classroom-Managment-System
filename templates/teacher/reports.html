@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Reports - SCMS{% endblock %}
+{% block page_title %}Attendance Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Filter Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form id="reports-filter-form" method="GET" action="{{ url_for('teacher_reports') }}">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="class_id" class="form-label">Class</label>
+                                <select name="class_id" id="class_id" class="form-select">
+                                    {% for class_item in classes %}
+                                        <option value="{{ class_item.id }}" {% if class_item.id == selected_class_id %}selected{% endif %}>
+                                            {{ class_item.name }} (Grade {{ class_item.grade }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="start_date" class="form-label">Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="end_date" class="form-label">End Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+                            </div>
+                            
+                            <div class="col-md-3 mb-3 d-flex align-items-end">
+                                <div class="d-grid w-100">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-filter me-2"></i> Apply Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Attendance Report: {{ classes|selectattr('id', 'equalto', selected_class_id)|map(attribute='name')|first }} ({{ start_date }} to {{ end_date }})</h5>
+                    <div>
+                        <button class="btn btn-outline-primary me-2" id="export-csv">
+                            <i class="fas fa-file-csv me-2"></i> Export CSV
+                        </button>
+                        <button class="btn btn-outline-info btn-print">
+                            <i class="fas fa-print me-2"></i> Print Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attendance Summary -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Overall Statistics</h5>
+                </div>
+                <div class="card-body">
+                    {% set total_records = 0 %}
+                    {% set present_records = 0 %}
+                    {% set absent_records = 0 %}
+                    {% set late_records = 0 %}
+                    
+                    {% for student in students %}
+                        {% set student_data = attendance_data.get(student.id, {}) %}
+                        {% for date in date_range %}
+                            {% set status = student_data.get(date, none) %}
+                            {% if status %}
+                                {% set total_records = total_records + 1 %}
+                                {% if status == 'present' %}
+                                    {% set present_records = present_records + 1 %}
+                                {% elif status == 'absent' %}
+                                    {% set absent_records = absent_records + 1 %}
+                                {% elif status == 'late' %}
+                                    {% set late_records = late_records + 1 %}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h2 class="text-success">{{ present_records }}</h2>
+                            <p class="text-muted">Present</p>
+                        </div>
+                        <div class="col-4">
+                            <h2 class="text-danger">{{ absent_records }}</h2>
+                            <p class="text-muted">Absent</p>
+                        </div>
+                        <div class="col-4">
+                            <h2 class="text-warning">{{ late_records }}</h2>
+                            <p class="text-muted">Late</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Total Students:</span>
+                        <strong>{{ students|length }}</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Date Range:</span>
+                        <strong>{{ date_range|length }} days</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Attendance Rate:</span>
+                        <strong class="{% if (present_records + late_records) / total_records * 100 > 80 if total_records else false %}text-success{% elif (present_records + late_records) / total_records * 100 > 60 if total_records else false %}text-warning{% else %}text-danger{% endif %}">
+                            {{ ((present_records + late_records) / total_records * 100)|round(1) if total_records else 0 }}%
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Class Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% set student_present_days = [] %}
+                    {% set student_names = [] %}
+                    
+                    {% for student in students %}
+                        {% set student_data = attendance_data.get(student.id, {}) %}
+                        {% set present_count = 0 %}
+                        
+                        {% for date in date_range %}
+                            {% set status = student_data.get(date, none) %}
+                            {% if status == 'present' or status == 'late' %}
+                                {% set present_count = present_count + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% do student_present_days.append(present_count) %}
+                        {% do student_names.append(student.user.name) %}
+                    {% endfor %}
+                    
+                    <div id="class-attendance-chart" 
+                         data-chart="class-attendance"
+                         data-students='{{ student_names|tojson }}'
+                         data-present-days='{{ student_present_days|tojson }}'
+                         data-total-days='{{ date_range|length }}'
+                         style="height: 300px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Attendance Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Detailed Attendance Records</h5>
+                    <div class="input-group" style="width: 200px;">
+                        <input type="text" id="studentSearchReport" class="form-control" placeholder="Search student...">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="attendance-table">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 200px;">Student</th>
+                                    {% for date in date_range %}
+                                        <th class="text-center">{{ date|replace('-', '/') }}</th>
+                                    {% endfor %}
+                                    <th class="text-center">Present %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr class="student-row">
+                                    <td>{{ student.user.name }}</td>
+                                    
+                                    {% set student_data = attendance_data.get(student.id, {}) %}
+                                    {% set present_count = 0 %}
+                                    
+                                    {% for date in date_range %}
+                                        {% set status = student_data.get(date, none) %}
+                                        <td class="text-center">
+                                            {% if status == 'present' %}
+                                                <span class="badge bg-success">P</span>
+                                                {% set present_count = present_count + 1 %}
+                                            {% elif status == 'absent' %}
+                                                <span class="badge bg-danger">A</span>
+                                            {% elif status == 'late' %}
+                                                <span class="badge bg-warning">L</span>
+                                                {% set present_count = present_count + 1 %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                    
+                                    {% set attendance_rate = (present_count / date_range|length * 100)|round(1) if date_range|length else 0 %}
+                                    <td class="text-center">
+                                        <strong class="{% if attendance_rate > 80 %}text-success{% elif attendance_rate > 60 %}text-warning{% else %}text-danger{% endif %}">
+                                            {{ attendance_rate }}%
+                                        </strong>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="{{ date_range|length + 2 }}" class="text-center">No students in this class.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Export to CSV functionality
+        const exportBtn = document.getElementById('export-csv');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const className = document.querySelector('select[name="class_id"] option:checked').textContent;
+                const startDate = document.getElementById('start_date').value;
+                const endDate = document.getElementById('end_date').value;
+                const fileName = `attendance_${className.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${startDate}_to_${endDate}.csv`;
+                
+                AttendanceManager.exportToCSV('attendance-table', fileName);
+            });
+        }
+        
+        // Student search functionality
+        const searchInput = document.getElementById('studentSearchReport');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchValue = this.value.toLowerCase();
+                const tableRows = document.querySelectorAll('.student-row');
+                
+                tableRows.forEach(row => {
+                    const studentName = row.cells[0].textContent.toLowerCase();
+                    
+                    if (studentName.includes(searchValue)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        // Date range validation
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        
+        if (startDateInput && endDateInput) {
+            startDateInput.addEventListener('change', function() {
+                if (this.value > endDateInput.value) {
+                    endDateInput.value = this.value;
+                }
+            });
+            
+            endDateInput.addEventListener('change', function() {
+                if (this.value < startDateInput.value) {
+                    startDateInput.value = this.value;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

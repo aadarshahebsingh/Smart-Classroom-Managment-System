@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Reports - SCMS{% endblock %}
+{% block page_title %}Attendance Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Report Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Attendance Reports</h5>
+                        <div>
+                            <button class="btn btn-outline-primary me-2" id="btn-export-csv">
+                                <i class="fas fa-file-csv me-2"></i> Export CSV
+                            </button>
+                            <button class="btn btn-outline-info me-2 btn-print">
+                                <i class="fas fa-print me-2"></i> Print Report
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Report Date</label>
+                            <input type="date" class="form-control" value="{{ now.strftime('%Y-%m-%d') }}" id="report-date">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Report Type</label>
+                            <select class="form-select" id="report-type">
+                                <option value="daily" selected>Daily Class Attendance</option>
+                                <option value="weekly">Weekly Summary</option>
+                                <option value="monthly">Monthly Overview</option>
+                                <option value="recognition">Recognition Method Stats</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Filter by Grade</label>
+                            <select class="form-select" id="grade-filter">
+                                <option value="all" selected>All Grades</option>
+                                {% for i in range(1, 13) %}
+                                <option value="{{ i }}">Grade {{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Daily Class Attendance Stats -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance Statistics by Class</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="class-attendance-table">
+                            <thead>
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Grade</th>
+                                    <th>Total Students</th>
+                                    <th>Present</th>
+                                    <th>Attendance Rate</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for class_stat in class_stats %}
+                                <tr>
+                                    <td>{{ class_stat.name }}</td>
+                                    <td>{{ class_stat.grade }}</td>
+                                    <td>{{ class_stat.student_count }}</td>
+                                    <td>{{ class_stat.present_count }} / {{ class_stat.student_count }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar 
+                                                {% if class_stat.present_percent >= 90 %}bg-success
+                                                {% elif class_stat.present_percent >= 75 %}bg-info
+                                                {% elif class_stat.present_percent >= 50 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {{ class_stat.present_percent }}%;" 
+                                                aria-valuenow="{{ class_stat.present_percent }}" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="100">{{ class_stat.present_percent }}%</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if class_stat.present_percent >= 90 %}
+                                            <span class="badge bg-success">Excellent</span>
+                                        {% elif class_stat.present_percent >= 75 %}
+                                            <span class="badge bg-info">Good</span>
+                                        {% elif class_stat.present_percent >= 50 %}
+                                            <span class="badge bg-warning">Average</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Poor</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No attendance data available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recognition Method Statistics -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance Recording Methods</h5>
+                </div>
+                <div class="card-body">
+                    <div id="recognition-methods-chart" 
+                         data-chart="recognition-methods" 
+                         data-facial-count="{{ recognition_stats.facial_count }}" 
+                         data-manual-count="{{ recognition_stats.manual_count }}"
+                         style="height: 300px;">
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h6 class="mb-0">Facial Recognition</h6>
+                            <h3 class="text-primary mb-0">{{ recognition_stats.facial_percent }}%</h3>
+                            <small class="text-muted">{{ recognition_stats.facial_count }} records</small>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="mb-0">Manual Entry</h6>
+                            <h3 class="text-warning mb-0">{{ recognition_stats.manual_percent }}%</h3>
+                            <small class="text-muted">{{ recognition_stats.manual_count }} records</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">System Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="text-center">
+                                <h1 class="display-4 text-success">{{ recognition_stats.facial_count }}</h1>
+                                <p class="text-muted">Successful Face Detections</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="text-center">
+                                <h1 class="display-4 text-primary">{{ (class_stats|sum(attribute='student_count') / class_stats|length) | round(1) if class_stats else 0 }}</h1>
+                                <p class="text-muted">Avg Students Per Class</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6>System Health</h6>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Face Recognition Accuracy</span>
+                            <span>{{ recognition_stats.facial_percent }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ recognition_stats.facial_percent }}%" aria-valuenow="{{ recognition_stats.facial_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Overall Attendance Rate</span>
+                            <span>{{ (class_stats|sum(attribute='present_count') / class_stats|sum(attribute='student_count') * 100) | round(1) if class_stats and class_stats|sum(attribute='student_count') > 0 else 0 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ (class_stats|sum(attribute='present_count') / class_stats|sum(attribute='student_count') * 100) | round(1) if class_stats and class_stats|sum(attribute='student_count') > 0 else 0 }}%" aria-valuenow="{{ (class_stats|sum(attribute='present_count') / class_stats|sum(attribute='student_count') * 100) | round(1) if class_stats and class_stats|sum(attribute='student_count') > 0 else 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Best & Worst Attendance -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Highest Attendance Rate</h5>
+                </div>
+                <div class="card-body">
+                    {% set highest_class = class_stats|sort(attribute='present_percent')|reverse|first if class_stats else None %}
+                    {% if highest_class %}
+                    <div class="text-center mb-3">
+                        <h2 class="text-success">{{ highest_class.name }} (Grade {{ highest_class.grade }})</h2>
+                        <h1 class="display-1">{{ highest_class.present_percent }}%</h1>
+                        <p>{{ highest_class.present_count }} out of {{ highest_class.student_count }} students present</p>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <p class="text-muted">No attendance data available.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Lowest Attendance Rate</h5>
+                </div>
+                <div class="card-body">
+                    {% set lowest_class = class_stats|sort(attribute='present_percent')|first if class_stats else None %}
+                    {% if lowest_class %}
+                    <div class="text-center mb-3">
+                        <h2 class="text-danger">{{ lowest_class.name }} (Grade {{ lowest_class.grade }})</h2>
+                        <h1 class="display-1">{{ lowest_class.present_percent }}%</h1>
+                        <p>{{ lowest_class.present_count }} out of {{ lowest_class.student_count }} students present</p>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <p class="text-muted">No attendance data available.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Export to CSV functionality
+        const exportBtn = document.getElementById('btn-export-csv');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                AttendanceManager.exportToCSV('class-attendance-table', 'attendance_report.csv');
+            });
+        }
+        
+        // Update report date to current date
+        const reportDateInput = document.getElementById('report-date');
+        if (reportDateInput) {
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            reportDateInput.value = formattedDate;
+        }
+        
+        // Report type change handler
+        const reportTypeSelect = document.getElementById('report-type');
+        if (reportTypeSelect) {
+            reportTypeSelect.addEventListener('change', function() {
+                // In a real implementation, this would update the report data via AJAX
+                console.log('Report type changed to:', this.value);
+            });
+        }
+        
+        // Grade filter change handler
+        const gradeFilterSelect = document.getElementById('grade-filter');
+        if (gradeFilterSelect) {
+            gradeFilterSelect.addEventListener('change', function() {
+                const grade = this.value;
+                const tableRows = document.querySelectorAll('#class-attendance-table tbody tr');
+                
+                tableRows.forEach(row => {
+                    if (grade === 'all' || row.cells[1].textContent.trim() === grade) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

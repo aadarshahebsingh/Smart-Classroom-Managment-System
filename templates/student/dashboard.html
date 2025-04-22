@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - SCMS{% endblock %}
+{% block page_title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Student Profile -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if student.photo_path %}
+                            <img src="{{ url_for('uploaded_file', filename=student.photo_path.split('/')[-1]) }}" 
+                                alt="{{ current_user.name }}" class="rounded-circle" 
+                                style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #2196F3;">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" 
+                                style="width: 150px; height: 150px; border: 3px solid #2196F3;">
+                                <i class="fas fa-user-graduate text-primary" style="font-size: 4rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h4 class="mb-0">{{ current_user.name }}</h4>
+                    <p class="text-muted">{{ student.class_group.name }} (Grade {{ student.class_group.grade }})</p>
+                    
+                    <div class="d-flex justify-content-center mt-3">
+                        <div class="px-3">
+                            <h5>{{ stats.attendance_rate }}%</h5>
+                            <small class="text-muted">Attendance</small>
+                        </div>
+                        <div class="px-3 border-start">
+                            <h5>{{ stats.days_present }}</h5>
+                            <small class="text-muted">Days Present</small>
+                        </div>
+                        <div class="px-3 border-start">
+                            <h5>{{ stats.total_days }}</h5>
+                            <small class="text-muted">Total Days</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <h2 class="text-success">{{ stats.days_present }}</h2>
+                                <p class="mb-0">Days Present</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <h2 class="text-danger">{{ stats.days_absent }}</h2>
+                                <p class="mb-0">Days Absent</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <h2 class="text-warning">{{ stats.days_late }}</h2>
+                                <p class="mb-0">Days Late</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6>Attendance Rate</h6>
+                    <div class="progress mb-4" style="height: 25px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ stats.attendance_rate }}%" 
+                             aria-valuenow="{{ stats.attendance_rate }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ stats.attendance_rate }}%
+                        </div>
+                    </div>
+                    
+                    <div class="attendance-status mt-4">
+                        <h6>Attendance Status</h6>
+                        <div class="d-flex align-items-center p-3 bg-light rounded">
+                            {% if stats.attendance_rate >= 90 %}
+                                <i class="fas fa-award text-success me-3" style="font-size: 2.5rem;"></i>
+                                <div>
+                                    <h5 class="text-success mb-1">Excellent Attendance</h5>
+                                    <p class="mb-0">Keep up the great work! Your attendance is excellent.</p>
+                                </div>
+                            {% elif stats.attendance_rate >= 75 %}
+                                <i class="fas fa-thumbs-up text-info me-3" style="font-size: 2.5rem;"></i>
+                                <div>
+                                    <h5 class="text-info mb-1">Good Attendance</h5>
+                                    <p class="mb-0">You're doing well. Try to maintain your attendance.</p>
+                                </div>
+                            {% elif stats.attendance_rate >= 60 %}
+                                <i class="fas fa-exclamation-circle text-warning me-3" style="font-size: 2.5rem;"></i>
+                                <div>
+                                    <h5 class="text-warning mb-1">Average Attendance</h5>
+                                    <p class="mb-0">Your attendance needs improvement. Try to attend more regularly.</p>
+                                </div>
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle text-danger me-3" style="font-size: 2.5rem;"></i>
+                                <div>
+                                    <h5 class="text-danger mb-1">Poor Attendance</h5>
+                                    <p class="mb-0">Your attendance is concerning. Please talk to your teacher.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attendance History Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance History</h5>
+                </div>
+                <div class="card-body">
+                    <div id="attendance-history-chart" 
+                         data-chart="student-attendance-history" 
+                         data-dates='{{ chart_dates|tojson }}' 
+                         data-statuses='{{ chart_statuses|tojson }}'
+                         style="height: 300px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Attendance Records -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Attendance Records</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary disabled">View All Records</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Method</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in recent_attendance %}
+                                <tr>
+                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% if record.status == 'present' %}
+                                            <span class="badge bg-success">Present</span>
+                                        {% elif record.status == 'absent' %}
+                                            <span class="badge bg-danger">Absent</span>
+                                        {% elif record.status == 'late' %}
+                                            <span class="badge bg-warning">Late</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if record.method == 'facial' %}
+                                            <span class="badge bg-info">Facial Recognition</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Manual Entry</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ record.timestamp.strftime('%H:%M:%S') }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No attendance records found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Information Cards -->
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Attendance Policy</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">Students are expected to attend all classes.</li>
+                        <li class="mb-2">If you need to be absent, please notify your teacher in advance.</li>
+                        <li class="mb-2">A doctor's note is required for medical absences.</li>
+                        <li class="mb-2">Attendance below 75% may affect your academic standing.</li>
+                        <li>Regular attendance is essential for academic success.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Facial Recognition Information</h5>
+                </div>
+                <div class="card-body">
+                    <p>Your attendance is now being recorded using facial recognition technology:</p>
+                    <ul class="mb-0">
+                        <li class="mb-2">Simply look at the camera when entering class.</li>
+                        <li class="mb-2">The system will automatically mark you present.</li>
+                        <li class="mb-2">If the system doesn't recognize you, please notify your teacher.</li>
+                        <li>Your photo is securely stored and used only for attendance purposes.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any additional student-specific functionality here
+    });
+</script>
+{% endblock %}
