@@ -638,3 +638,33 @@ def delete_student(student_id):
     
     flash(f'Student and associated records have been deleted.', 'success')
     return redirect(url_for('manage_students'))
+
+# Student AI Study Assistant Routes
+@app.route('/student/study-assistant')
+@login_required
+@student_required
+def student_chatbot():
+    return render_template('student/chatbot.html', now=datetime.now())
+
+@app.route('/student/study-assistant/response', methods=['POST'])
+@login_required
+@student_required
+def student_chat_response():
+    from openrouter_api import StudyBotAPI
+    
+    # Get the message from the request
+    message = request.form.get('message', '')
+    
+    # Create an instance of the StudyBotAPI
+    study_bot = StudyBotAPI()
+    
+    # Get a response from the API
+    response = study_bot.get_study_response(message)
+    
+    # If it's an AJAX request, return JSON response
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'response': response})
+    
+    # Otherwise redirect back to the chatbot page
+    flash(response, 'success')
+    return redirect(url_for('student_chatbot'))

@@ -190,8 +190,41 @@
         </div>
     </div>
     
+    <!-- AI Study Assistant Card -->
+    <div class="row mt-4 mb-4">
+        <div class="col-12">
+            <div class="card bg-light border-primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="text-primary"><i class="fas fa-robot me-2"></i>AI Study Assistant</h4>
+                            <p class="lead">Need help with your studies? Our AI assistant can answer your academic questions!</p>
+                            <ul>
+                                <li>Get explanations for complex topics</li>
+                                <li>Help with homework questions</li>
+                                <li>Explore subjects in greater depth</li>
+                                <li>Practice with sample problems</li>
+                            </ul>
+                            <p class="small text-muted">Note: The AI assistant only responds to academic and study-related questions.</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="d-inline-block bg-primary text-white p-4 rounded-circle mb-3">
+                                <i class="fas fa-graduation-cap fa-3x"></i>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('student_chatbot') }}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-comments me-2"></i> Open Study Assistant
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Information Cards -->
-    <div class="row mt-4">
+    <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-header bg-primary text-white">
