@@ -156,7 +156,8 @@ def admin_dashboard():
                           class_count=class_count,
                           dates=dates,
                           counts=counts,
-                          present_counts=present_counts)
+                          present_counts=present_counts,
+                          now=datetime.now())
 
 @app.route('/admin/students', methods=['GET', 'POST'])
 @login_required
@@ -330,7 +331,8 @@ def admin_reports():
     
     return render_template('admin/reports.html', 
                            class_stats=class_stats,
-                           recognition_stats=recognition_stats)
+                           recognition_stats=recognition_stats,
+                           now=datetime.now())
 
 # Teacher routes
 @app.route('/teacher/dashboard')
@@ -360,7 +362,8 @@ def teacher_dashboard():
     return render_template('teacher/dashboard.html', 
                            teacher=teacher,
                            classes=classes,
-                           recent_attendance=recent_attendance)
+                           recent_attendance=recent_attendance,
+                           now=datetime.now())
 
 @app.route('/teacher/attendance', methods=['GET', 'POST'])
 @login_required
@@ -424,7 +427,8 @@ def teacher_attendance():
                           selected_class_id=selected_class_id,
                           students=students,
                           today_attendance=today_attendance,
-                          form=form)
+                          form=form,
+                          now=datetime.now())
 
 @app.route('/api/recognize', methods=['POST'])
 @login_required
@@ -549,7 +553,8 @@ def teacher_reports():
                           end_date=end_date.strftime('%Y-%m-%d'),
                           students=students,
                           attendance_data=attendance_data,
-                          date_range=date_range)
+                          date_range=date_range,
+                          now=datetime.now())
 
 # Student routes
 @app.route('/student/dashboard')
@@ -606,7 +611,8 @@ def student_dashboard():
                           stats=stats,
                           recent_attendance=recent_attendance,
                           chart_dates=chart_dates,
-                          chart_statuses=chart_statuses)
+                          chart_statuses=chart_statuses,
+                          now=datetime.now())
 
 # Static file routes
 @app.route('/uploads/<filename>')
