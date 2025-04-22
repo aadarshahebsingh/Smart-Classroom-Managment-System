@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Board - SCMS{% endblock %}
+{% block page_title %}Smart Board{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Interactive Smart Board</h5>
+                    <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-outline-dark btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                    </a>
+                </div>
+                <div class="card-body text-center">
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-10">
+                            <div class="display-1 text-warning mb-4">
+                                <i class="fas fa-chalkboard"></i>
+                            </div>
+                            <h3 class="mb-4">Launch the Smart Board Application</h3>
+                            <p class="lead mb-4">
+                                Click the button below to open the interactive Smart Board application in a new tab. 
+                                This tool provides collaborative whiteboard features for classroom instruction.
+                            </p>
+                            <a href="http://localhost:8504/" target="_blank" class="btn btn-lg btn-warning px-5 py-3">
+                                <i class="fas fa-external-link-alt me-2"></i> Start Smart Board
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-5">
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card mb-4 h-100">
+                                <div class="card-body">
+                                    <i class="fas fa-pencil-alt fa-3x text-warning mb-3"></i>
+                                    <h4>Drawing Tools</h4>
+                                    <p>Use pens, highlighters, and shapes to annotate and explain concepts</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card mb-4 h-100">
+                                <div class="card-body">
+                                    <i class="fas fa-file-upload fa-3x text-warning mb-3"></i>
+                                    <h4>File Sharing</h4>
+                                    <p>Upload documents, images, and presentations to display and annotate</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card mb-4 h-100">
+                                <div class="card-body">
+                                    <i class="fas fa-users fa-3x text-warning mb-3"></i>
+                                    <h4>Collaboration</h4>
+                                    <p>Invite students to interact with the board in real-time</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="text-muted text-center">
+                        <small>Smart Board is an external application that runs on port 8504. Make sure the service is running before accessing.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

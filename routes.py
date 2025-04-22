@@ -540,6 +540,13 @@ def teacher_reports():
                           date_range=date_range,
                           now=datetime.now())
 
+# Smart Board route
+@app.route('/teacher/smartboard')
+@login_required
+@teacher_required
+def teacher_smartboard():
+    return render_template('teacher/smartboard.html', now=datetime.now())
+
 # Student routes
 @app.route('/student/dashboard')
 @login_required
