@@ -1,0 +1,41 @@
+Create a web and mobile app prototype for Smart Classroom Management Software (SCMS) designed for teachers, students, and school administrators. The app should be intuitive, modern, and clean, suitable for educational environments and non-technical users. Include the following features:
+
+Facial Recognition Attendance:(as i have give you the zip file)
+Integrate facial recognition using a Python library to detect student faces from the webcam and automatically mark attendance when a match is found. The system should compare the live face with stored student photos and mark them present if matched. Also include a manual attendance override option for teachers.
+
+Login System:(as same as give image)
+Implement a single login screen where users (Admin, Teacher, Student) enter their email and password. Based on credentials and user type, redirect them to their respective dashboards.
+
+Admin Dashboard:
+
+Student Management:
+Include a section to enroll new students. Admin can input: student name, class (1–12), email, password, and upload a photo for facial recognition. Store this data in a backend database.
+
+Teacher Management:
+Include a section to register teachers with the following info: name, email, password, subject (e.g., Mathematics, English), and class they teach (1–12). Store all data in the backend.
+
+Classroom View:
+Show a tabulated or card-based layout of all students grouped by class, and all teachers grouped by subject and assigned class. Pull this information dynamically from the database.
+
+Dashboard Reports:
+Display attendance statistics (e.g., attendance percentage per class, most/least regular students), and overall resource utilization like system usage or face scan frequency.
+
+Teacher Dashboard:
+After login, allow teachers to:
+
+Start the webcam to initiate facial recognition for attendance.
+
+View the list of matched students and mark them present.
+
+Manually override attendance for any student.
+
+View attendance logs and summaries.
+
+Student Dashboard:
+Students can log in to view their personal dashboard showing:
+
+Their name, photo, class.
+
+Attendance history and trends.
+
+Make the entire system responsive and accessible on both web and mobile platforms. Use clear icons, modern fonts, rounded UI elements, and a light blue/white theme for a clean academic look.
