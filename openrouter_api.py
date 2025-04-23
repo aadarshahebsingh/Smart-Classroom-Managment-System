@@ -8,9 +8,9 @@ class ChatBotAPI:
     """
 
     def __init__(self):
-        self.api_key = os.environ.get('OPENROUTER_API_KEY')
+        self.api_key = "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"
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
-        self.model = "google/gemini-2.0-flash-thinking-exp:free"
+        self.model = "google/gemini-2.0-flash-exp:free"
 
     def get_response(self, query):
         """
